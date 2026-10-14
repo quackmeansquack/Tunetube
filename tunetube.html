@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#16111c">
+<title>Tunetube</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* Layout: sidebar + scrolling main + fixed transport bar; phones swap sidebar for a bottom tab row */
+:root{
+  --ink:#16111c; --panel:#1f1828; --raise:#2a2135; --line:#3a2f47;
+  --fg:#f3ecf7; --dim:#a898b6; --gold:#f2b84b; --gold-ink:#2a1a00; --skip:#7fd1b9; --warn:#f08a7a;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, sans-serif;
+  --bar:84px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--fg);font:15px/1.45 var(--body);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input,textarea,select{font:inherit}
+a{color:var(--gold)}
+.app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:1fr var(--bar);height:100%}
+aside{grid-row:1;background:var(--panel);padding:20px 14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--line);min-height:0}
+.brand{font:800 26px/1 var(--display);letter-spacing:-.02em;padding:4px 10px 18px;display:flex;align-items:center;gap:8px}
+.brand i{width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(242,184,75,.18)}
+.nav{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--dim);font-weight:600;text-align:left}
+.nav[aria-current="true"]{background:var(--raise);color:var(--fg)}
+.nav svg{width:20px;height:20px;flex:none}
+.side-pl{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;overflow:auto;display:flex;flex-direction:column;gap:2px;min-height:0}
+.side-pl button{text-align:left;padding:7px 12px;border-radius:8px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.side-pl button:hover{color:var(--fg);background:var(--raise)}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:8px 12px 6px}
+main{overflow:auto;padding-block:28px 40px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));min-width:0}
+h1{font:800 clamp(28px,5vw,44px)/1.05 var(--display);letter-spacing:-.025em;margin:0 0 6px;text-wrap:balance}
+h2{font:700 20px/1.2 var(--display);margin:30px 0 12px;text-wrap:balance}
+h3{font:700 16px/1.3 var(--display);margin:0}
+.sub{color:var(--dim);margin:0 0 20px;max-width:62ch}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--gold);color:var(--gold-ink);font-weight:700;padding:10px 18px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+.btn.ghost{background:var(--raise);color:var(--fg)}
+.btn.small{padding:7px 14px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.card{background:var(--panel);border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card:hover{background:var(--raise)}
+.card img,.card .ph{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--raise)}
+.card .ph{display:grid;place-items:center;font:800 40px var(--display);color:var(--gold);background:linear-gradient(135deg,var(--raise),var(--line))}
+.card b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card span{color:var(--dim);font-size:13px}
+.tracks{display:flex;flex-direction:column}
+.track{display:grid;grid-template-columns:28px 48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;border-radius:8px;text-align:left;width:100%;cursor:pointer}
+.track:hover{background:var(--panel)}
+.track.on{background:var(--raise)}
+.track.on .t{color:var(--gold)}
+.track .n{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+.track img,.track .noart{width:48px;height:48px;object-fit:cover;border-radius:6px;background:var(--raise)}
+.track .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track .a{color:var(--dim);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font-size:11px;letter-spacing:.04em;border-radius:999px;padding:1px 7px;margin-left:6px;border:1px solid var(--line);color:var(--dim);vertical-align:1px}
+.tag.bad{border-color:var(--warn);color:var(--warn)}
+.acts{display:flex;gap:2px}
+.acts button{color:var(--dim);padding:6px;border-radius:6px;display:grid;place-items:center}
+.acts button:hover{color:var(--fg);background:var(--line)}
+.search{display:flex;gap:8px;max-width:560px}
+.search input{flex:1;min-width:0;background:var(--fg);color:var(--ink);border:0;border-radius:999px;padding:12px 18px}
+.empty{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:20px;color:var(--dim);max-width:62ch}
+.box{background:var(--panel);border-radius:14px;padding:20px;max-width:680px;display:flex;flex-direction:column;gap:12px}
+.box ol{margin:0;padding-left:20px;color:var(--dim);display:flex;flex-direction:column;gap:6px}
+.box p{margin:0;color:var(--dim)}
+code{background:var(--raise);padding:1px 6px;border-radius:5px;color:var(--fg);font-size:13px;word-break:break-all}
+.field{background:var(--ink);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea.field{min-height:160px;resize:vertical;font-size:14px}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.toggle small{display:block;color:var(--dim)}
+.toggle input{width:20px;height:20px;accent-color:var(--gold);flex:none}
+.meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden;max-width:680px}
+.meter i{display:block;height:100%;background:var(--skip);border-radius:4px;transition:width .3s}
+.stat{color:var(--dim);font-size:14px;font-variant-numeric:tabular-nums}
+.stat b{color:var(--fg)}
+/* transport */
+.bar{grid-column:1/-1;background:var(--panel);border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);align-items:center;gap:16px;padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.np{display:flex;gap:12px;align-items:center;min-width:0;text-align:left}
+.np img{width:54px;height:54px;border-radius:6px;object-fit:cover;background:var(--raise);flex:none}
+.np div{min-width:0}
+.np b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np span{color:var(--dim);font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{display:flex;flex-direction:column;gap:6px;align-items:center}
+.ctl .row{gap:14px;justify-content:center;flex-wrap:nowrap}
+.ic{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:var(--dim)}
+.ic:hover{color:var(--fg)}
+.ic.on{color:var(--gold)}
+.ic svg{width:20px;height:20px}
+.play{width:42px;height:42px;background:var(--fg);color:var(--ink);border-radius:50%;display:grid;place-items:center}
+.play svg{width:20px;height:20px}
+.prog{display:flex;align-items:center;gap:10px;width:100%;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.track-bar{position:relative;flex:1;height:6px;background:var(--line);border-radius:3px;cursor:pointer}
+.track-bar .fill{position:absolute;inset:0 auto 0 0;background:var(--fg);border-radius:3px}
+.track-bar .seg{position:absolute;top:0;bottom:0;background:var(--skip);opacity:.75;border-radius:2px}
+.track-bar .seg.mine{background:var(--gold)}
+.right{display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.pill{font-size:12px;color:var(--skip);border:1px solid var(--skip);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.vol{width:96px;accent-color:var(--fg)}
+/* now playing sheet */
+.sheet{position:fixed;inset:0 0 var(--bar) 0;background:linear-gradient(180deg,#2c1f3a 0%,var(--ink) 70%);z-index:5;overflow:auto;padding-block:max(20px,env(safe-area-inset-top,0px)) 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-in{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.sheet-top{display:flex;justify-content:space-between;align-items:center}
+.stage{width:100%;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000}
+.sheet h1{font-size:clamp(24px,5vw,34px)}
+.log{font-size:13px;color:var(--dim);display:flex;flex-direction:column;gap:4px}
+.log b{color:var(--skip);font-weight:600}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tools select{background:var(--raise);color:var(--fg);border:0;border-radius:999px;padding:8px 14px;font-weight:600}
+#parking{position:fixed;width:200px;height:200px;right:12px;bottom:calc(var(--bar) + 12px);opacity:.001;pointer-events:none;z-index:-1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bar) + 16px);background:var(--skip);color:#06231b;font-weight:600;padding:8px 16px;border-radius:999px;z-index:20;font-size:13px;max-width:calc(100% - 32px);text-align:center}
+/* picker */
+.scrim{position:fixed;inset:0;background:rgba(10,6,14,.72);z-index:15;display:grid;place-items:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px))}
+.picker{background:var(--panel);border-radius:16px;padding:18px;width:100%;max-width:520px;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.cand{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;padding:8px;border-radius:10px;width:100%}
+.cand:hover{background:var(--raise)}
+.cand.on{outline:2px solid var(--gold)}
+.cand img{width:72px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--raise)}
+.cand b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cand span{color:var(--dim);font-size:12px}
+.mobnav{display:none}
+@media (max-width:760px){
+  :root{--bar:132px}
+  .app{grid-template-columns:1fr}
+  aside{display:none}
+  main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 24px}
+  .bar{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;gap:6px 10px;padding-block:8px calc(4px + env(safe-area-inset-bottom,0px));align-content:start}
+  .np{grid-column:1;grid-row:1}
+  .np img{width:42px;height:42px}
+  .ctl{display:contents}
+  .ctl .row{grid-column:2;grid-row:1;gap:4px}
+  .ctl .row .hide-m{display:none}
+  .prog{grid-column:1/-1;grid-row:2}
+  .right{display:none}
+  .mobnav{display:flex;grid-column:1/-1;grid-row:3;justify-content:space-around;border-top:1px solid var(--line);padding-top:4px}
+  .mobnav .nav{flex-direction:column;gap:2px;font-size:11px;padding:4px 6px}
+  .track{grid-template-columns:44px minmax(0,1fr) auto;gap:10px;padding:8px 4px}
+  .track .n{display:none}
+  .track img,.track .noart{width:44px;height:44px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><i></i>Tunetube</div>
+    <button class="nav" data-view="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg>Home</button>
+    <button class="nav" data-view="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search</button>
+    <button class="nav" data-view="library"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h3v18H4zm5 0h3v18H9zm5.2.6 2.9-.8 4.7 17.4-2.9.8z"/></svg>Library</button>
+    <button class="nav" data-view="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>Import</button>
+    <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>Settings</button>
+    <div class="side-pl" id="sidePl"></div>
+  </aside>
+
+  <main id="main"></main>
+
+  <footer class="bar">
+    <button class="np" id="npBtn" aria-label="Open now playing">
+      <img id="npArt" alt="">
+      <div><b id="npTitle">Nothing playing</b><span id="npArtist">Pick a song to start</span></div>
+    </button>
+    <div class="ctl">
+      <div class="row">
+        <button class="ic hide-m" id="shuf" aria-label="Shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+        <button class="ic" id="prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zm3.5 7L19 5v14z"/></svg></button>
+        <button class="play" id="playBtn" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor" id="playIc"><path d="M7 4v16l13-8z"/></svg></button>
+        <button class="ic" id="next" aria-label="Next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM5 5l9.5 7L5 19z"/></svg></button>
+        <button class="ic hide-m" id="rep" aria-label="Repeat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></button>
+      </div>
+      <div class="prog"><span id="tCur">0:00</span><div class="track-bar" id="seek"><div class="fill" id="fill" style="width:0"></div></div><span id="tDur">0:00</span></div>
+    </div>
+    <div class="right">
+      <span class="pill" id="skipPill" hidden></span>
+      <input type="range" class="vol" id="vol" min="0" max="100" value="80" aria-label="Volume">
+    </div>
+    <nav class="mobnav">
+      <button class="nav" data-view="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg>Home</button>
+      <button class="nav" data-view="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search</button>
+      <button class="nav" data-view="library"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h3v18H4zm5 0h3v18H9zm5.2.6 2.9-.8 4.7 17.4-2.9.8z"/></svg>Library</button>
+      <button class="nav" data-view="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>Import</button>
+      <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>Settings</button>
+    </nav>
+  </footer>
+</div>
+
+<section class="sheet" id="sheet" hidden>
+  <div class="sheet-in">
+    <div class="sheet-top"><span class="label" style="padding:0">Now playing</span><button class="btn ghost small" id="closeSheet">Close</button></div>
+    <div class="stage" id="stage"></div>
+    <div><h1 id="shTitle">—</h1><p class="sub" id="shArtist" style="margin:0"></p></div>
+    <div class="tools">
+      <button class="btn ghost small" id="markBtn">Mark skip start</button>
+      <button class="btn ghost small" id="clearMarks" hidden>Clear my marks</button>
+      <select id="sleep" aria-label="Sleep timer">
+        <option value="">Sleep timer off</option>
+        <option value="15">Stop in 15 min</option>
+        <option value="30">Stop in 30 min</option>
+        <option value="60">Stop in 1 hour</option>
+        <option value="end">Stop after this song</option>
+      </select>
+    </div>
+    <div class="log" id="shLog"></div>
+    <h2 style="margin:6px 0 0">Up next</h2>
+    <div class="tracks" id="shQueue"></div>
+  </div>
+</section>
+<div class="scrim" id="scrim" hidden><div class="picker" id="picker"></div></div>
+<div id="parking"><div id="yt"></div></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="restoreFile" accept="application/json,.json" hidden>
+
+<script>
+/* ======================= storage ======================= */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('tt.'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('tt.'+k, JSON.stringify(v)); }catch(e){ toast('Browser storage is full or blocked'); } }
+};
+const BACKUP_KEYS = ['clientId','spClientId','prefs','recent','local','match','mySkips','plays'];
+const S = {
+  clientId: store.get('clientId',''), spClientId: store.get('spClientId',''),
+  token:null, tokenExp:0, wtoken:null, wtokenExp:0,
+  sp: store.get('sp', null),
+  view:'home', viewArg:null,
+  playlists:[], liked:[], spLists:null,
+  queue:[], idx:-1, shuffle:false, repeat:false,
+  segments:[], skipLog:[], markStart:null, sleep:null,
+  prefs: Object.assign({ offtopic:true, intro:false, outro:false, sponsor:true, selfpromo:true, preview:false, musicOnly:true, cleanTitles:true, preferAudio:true }, store.get('prefs',{})),
+  recent: store.get('recent', []),
+  local: store.get('local', []),
+  match: store.get('match', {}),
+  mySkips: store.get('mySkips', {}),
+  plays: store.get('plays', {}),
+  job: null
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const decTA = document.createElement('textarea');
+const dec = s => { decTA.innerHTML = s || ''; return decTA.value; };
+const fmt = s => { s = Math.max(0, Math.floor(s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const uid = () => Math.random().toString(36).slice(2,10);
+const sleepMs = ms => new Promise(r => setTimeout(r, ms));
+
+/* ======================= titles ======================= */
+const JUNK = /\s*[\(\[\{][^\)\]\}]*(official|music video|lyric|lyrics|visuali[sz]er|audio|video|hd|hq|4k|remaster(ed)?|explicit|mv|m\/v)[^\)\]\}]*[\)\]\}]/gi;
+function cleanTitle(t){ return S.prefs.cleanTitles ? t.replace(JUNK,'').replace(/\s*\|\s*.*$/,'').replace(/\s{2,}/g,' ').trim() : t; }
+function cleanArtist(a){ return (a||'').replace(/\s*-\s*Topic$/i,'').replace(/VEVO$/i,'').trim(); }
+function splitArtist(title, channel){
+  const t = cleanTitle(title); const m = t.match(/^(.+?)\s+[-–—]\s+(.+)$/);
+  return m ? { title:m[2], artist:m[1] } : { title:t, artist:cleanArtist(channel) };
+}
+function thumbOf(sn, id){ const th = sn.thumbnails || {}; return (th.high||th.medium||th.default||{}).url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`; }
+function toTrack(id, sn){
+  const raw = dec(sn.title||''); const p = splitArtist(raw, dec(sn.videoOwnerChannelTitle || sn.channelTitle));
+  return { id, title:p.title, artist:p.artist, art:thumbOf(sn,id) };
+}
+function norm(s){
+  return (s||'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'')
+    .replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\b(feat|ft|featuring)\b\.?.*$/,' ')
+    .replace(/&/g,' and ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+const mkey = (artist, title) => norm(artist)+'|'+norm(title);
+
+/* ======================= Google sign-in ======================= */
+const READ_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
+const WRITE_SCOPE = 'https://www.googleapis.com/auth/youtube';
+let tokenClient = null, writeClient = null, waitRead = [], waitWrite = [];
+function initAuth(){
+  if(!S.clientId || !window.google?.accounts?.oauth2) return false;
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id:S.clientId, scope:READ_SCOPE, callback:r => {
+    if(r.error){ toast('Sign-in failed: '+r.error); waitRead.splice(0).forEach(f=>f(null)); return; }
+    S.token = r.access_token; S.tokenExp = Date.now() + (r.expires_in-60)*1000;
+    waitRead.splice(0).forEach(f=>f(S.token)); loadLibrary();
+  }});
+  writeClient = google.accounts.oauth2.initTokenClient({ client_id:S.clientId, scope:WRITE_SCOPE, callback:r => {
+    if(r.error){ toast('Permission not given: '+r.error); waitWrite.splice(0).forEach(f=>f(null)); return; }
+    S.wtoken = r.access_token; S.wtokenExp = Date.now() + (r.expires_in-60)*1000;
+    if(!S.token){ S.token = S.wtoken; S.tokenExp = S.wtokenExp; loadLibrary(); }
+    waitWrite.splice(0).forEach(f=>f(S.wtoken));
+  }});
+  return true;
+}
+function signIn(){
+  if(!tokenClient && !initAuth()){ toast(S.clientId ? 'Sign-in is still loading, try again in a second' : 'Add your Google client ID in Settings first'); return Promise.resolve(null); }
+  return new Promise(res => { waitRead.push(res); tokenClient.requestAccessToken({ prompt: S.token ? '' : 'consent' }); });
+}
+function writeToken(){
+  if(S.wtoken && Date.now() < S.wtokenExp) return Promise.resolve(S.wtoken);
+  if(!writeClient && !initAuth()) return Promise.resolve(null);
+  return new Promise(res => { waitWrite.push(res); writeClient.requestAccessToken({ prompt:'' }); });
+}
+async function yt(path, params, opts = {}){
+  const tok = opts.token || (S.token && Date.now() < S.tokenExp ? S.token : null);
+  if(!tok) throw new Error('signin');
+  const u = new URL('https://www.googleapis.com/youtube/v3/'+path);
+  Object.entries(params||{}).forEach(([k,v]) => u.searchParams.set(k, v));
+  const r = await fetch(u, { method:opts.method||'GET', headers:{ Authorization:'Bearer '+tok, ...(opts.body?{'Content-Type':'application/json'}:{}) }, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if(r.status === 401){ if(opts.token){ S.wtoken=null; } else S.token = null; throw new Error('signin'); }
+  if(!r.ok){
+    const j = await r.json().catch(()=>({})); const reason = j.error?.errors?.[0]?.reason || '';
+    if(/quota/i.test(reason) || /quota/i.test(j.error?.message||'')) throw new Error('quota');
+    throw new Error(dec(j.error?.message) || ('YouTube error '+r.status));
+  }
+  return r.json();
+}
+const QUOTA_MSG = 'YouTube’s free daily limit is used up. It resets at midnight Pacific time, and everything done so far is saved.';
+function errMsg(e){ return e.message === 'quota' ? QUOTA_MSG : e.message === 'signin' ? 'Sign in to YouTube first.' : e.message; }
+
+async function loadLibrary(){
+  try{
+    const [pl, lk] = await Promise.all([
+      yt('playlists', { part:'snippet,contentDetails', mine:'true', maxResults:50 }),
+      yt('videos', { part:'snippet,contentDetails', myRating:'like', maxResults:50 })
+    ]);
+    S.playlists = pl.items || [];
+    S.liked = (lk.items||[]).filter(v => !S.prefs.musicOnly || v.snippet.categoryId === '10').map(v => toTrack(v.id, v.snippet));
+    renderSide(); render();
+  }catch(e){ if(e.message!=='signin') toast(errMsg(e)); }
+}
+async function loadPlaylist(id){
+  let items = [], page = '';
+  for(let i=0;i<6;i++){
+    const r = await yt('playlistItems', { part:'snippet', playlistId:id, maxResults:50, ...(page?{pageToken:page}:{}) });
+    items = items.concat(r.items||[]); page = r.nextPageToken; if(!page) break;
+  }
+  return items.filter(i => i.snippet.resourceId?.videoId && !/^(Private|Deleted) video$/.test(i.snippet.title))
+              .map(i => toTrack(i.snippet.resourceId.videoId, i.snippet));
+}
+async function searchMusic(q){
+  const r = await yt('search', { part:'snippet', type:'video', videoCategoryId:'10', maxResults:25, q });
+  return (r.items||[]).map(i => toTrack(i.id.videoId, i.snippet));
+}
+
+/* ======================= Spotify → YouTube matching ======================= */
+const ALT = /\b(live|cover|karaoke|instrumental|remix|sped ?up|slowed|reverb|8d|nightcore|reaction|tutorial|lesson|acoustic|piano version|lyrics? (?:español|traducida))\b/i;
+const isoSec = d => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d||''); return m ? (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0) : 0; };
+function scoreCand(t, c, rank){
+  const nt = norm(t.title), na = norm(t.artist), vt = norm(c.title), ch = norm(c.channel);
+  let s = 0;
+  if(nt && vt.includes(nt)) s += 4;
+  else { const w = nt.split(' ').filter(Boolean); const hit = w.filter(x => vt.includes(x)).length; s += w.length ? 3*hit/w.length : 0; }
+  if(na && (vt.includes(na) || ch.includes(na) || na.includes(ch.replace(/ topic$/,'')))) s += 3;
+  if(/ - topic$/i.test(c.channel)) s += S.prefs.preferAudio ? 4 : 1;
+  else if(/vevo$/i.test(c.channel)) s += 1;
+  if(!ALT.test(t.title) && ALT.test(c.title)) s -= 5;
+  if(t.durMs && c.dur){ const d = Math.abs(c.dur - t.durMs/1000); s += d < 4 ? 3 : d < 12 ? 1.5 : d < 40 ? 0 : -2 - Math.min(3, d/60); }
+  return s - rank*0.3;
+}
+async function findMatch(t){
+  const k = mkey(t.artist, t.title);
+  if(S.match[k]) return S.match[k];
+  const r = await yt('search', { part:'snippet', type:'video', maxResults:8, q:`${t.artist} ${t.title}`.trim() });
+  const items = (r.items||[]).filter(i => i.id?.videoId);
+  let res = { id:'', cands:[] };
+  if(items.length){
+    let durs = {};
+    try{ const d = await yt('videos', { part:'contentDetails', id:items.map(i=>i.id.videoId).join(',') }); (d.items||[]).forEach(v => durs[v.id] = isoSec(v.contentDetails.duration)); }catch(e){ if(e.message==='quota') throw e; }
+    const cands = items.map((i,rank) => { const c = { id:i.id.videoId, title:dec(i.snippet.title), channel:dec(i.snippet.channelTitle), art:thumbOf(i.snippet,i.id.videoId), dur:durs[i.id.videoId]||0 }; c.score = scoreCand(t, c, rank); return c; })
+                       .sort((a,b) => b.score - a.score);
+    res = { id: cands[0].score > 2 ? cands[0].id : '', cands: cands.slice(0,6).map(({score,...c}) => c) };
+  }
+  S.match[k] = res; store.set('match', S.match);
+  return res;
+}
+function localById(id){ return S.local.find(p => p.id === id); }
+function saveLocal(){ store.set('local', S.local); }
+function applyMatch(lt, m){
+  lt.yt = m.id || ''; const c = m.cands.find(x => x.id === m.id); if(c) lt.ytArt = c.art;
+}
+async function runMatching(plId){
+  const pl = localById(plId); if(!pl) return;
+  if(!S.token){ toast('Sign in to YouTube first'); return; }
+  if(S.job){ S.job.stop = true; await sleepMs(50); }
+  const job = S.job = { plId, stop:false };
+  updateJobUI();
+  for(const lt of pl.tracks){
+    if(job.stop) break;
+    if(lt.yt !== undefined) continue;
+    try{ applyMatch(lt, await findMatch(lt)); saveLocal(); updateJobUI(); }
+    catch(e){ toast(errMsg(e)); break; }
+  }
+  if(S.job === job) S.job = null;
+  updateJobUI();
+  if(S.view === 'lpl' && S.viewArg === plId) render();
+}
+function counts(pl){
+  let ok=0, none=0, todo=0; pl.tracks.forEach(t => t.yt === undefined ? todo++ : t.yt ? ok++ : none++);
+  return { ok, none, todo, all:pl.tracks.length };
+}
+function updateJobUI(){
+  const el = $('jobUI'); if(!el) return;
+  const pl = localById(S.viewArg); if(!pl) return;
+  const c = counts(pl); const done = c.all - c.todo;
+  const running = S.job && S.job.plId === pl.id;
+  el.innerHTML = `<div class="meter"><i style="width:${c.all? done/c.all*100 : 0}%"></i></div>
+    <div class="stat"><b>${c.ok}</b> matched · <b>${c.none}</b> not found · <b>${c.todo}</b> to go${running?' · matching now…':''}</div>
+    <div class="row">
+      ${c.todo ? (running ? `<button class="btn ghost small" data-stopjob>Pause matching</button>` : `<button class="btn small" data-match="${pl.id}">${done?'Resume':'Match'} ${c.todo} song${c.todo>1?'s':''}</button>`) : ''}
+      ${c.ok ? `<button class="btn ghost small" data-saveyt="${pl.id}">${pl.ytId ? 'Update YouTube playlist' : 'Save to my YouTube'}</button>` : ''}
+      <button class="btn ghost small" data-delpl="${pl.id}">Delete</button>
+    </div>
+    ${c.todo > 90 ? `<p class="sub" style="margin:0">YouTube allows about 95 song lookups a day on a free key. Big playlists finish over a few days, and unmatched songs are looked up anyway when you play them.</p>` : ''}`;
+}
+async function saveToYouTube(plId){
+  const pl = localById(plId); if(!pl) return;
+  const tok = await writeToken(); if(!tok){ toast('Tunetube needs permission to create playlists on your account'); return; }
+  try{
+    if(!pl.ytId){
+      const r = await yt('playlists', { part:'snippet,status' }, { method:'POST', token:tok, body:{ snippet:{ title:pl.name, description:'Imported with Tunetube' }, status:{ privacyStatus:'private' } } });
+      pl.ytId = r.id; pl.ytSaved = []; saveLocal();
+    }
+    pl.ytSaved = pl.ytSaved || [];
+    const todo = pl.tracks.filter(t => t.yt && !pl.ytSaved.includes(t.yt));
+    let n = 0;
+    for(const t of todo){
+      toast(`Adding to YouTube: ${++n} of ${todo.length}`);
+      await yt('playlistItems', { part:'snippet' }, { method:'POST', token:tok, body:{ snippet:{ playlistId:pl.ytId, resourceId:{ kind:'youtube#video', videoId:t.yt } } } });
+      pl.ytSaved.push(t.yt); saveLocal();
+    }
+    toast(todo.length ? `Saved ${todo.length} songs to “${pl.name}” on YouTube (private)` : 'YouTube playlist is already up to date');
+    loadLibrary();
+  }catch(e){ toast(errMsg(e)); }
+  updateJobUI();
+}
+
+/* ======================= import sources ======================= */
+function parseCSV(text){
+  const rows = []; let row = [], f = '', q = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(q){ if(c === '"'){ if(text[i+1] === '"'){ f += '"'; i++; } else q = false; } else f += c; }
+    else if(c === '"') q = true;
+    else if(c === ','){ row.push(f); f = ''; }
+    else if(c === '\n'){ row.push(f); rows.push(row); row = []; f = ''; }
+    else if(c !== '\r') f += c;
+  }
+  if(f || row.length){ row.push(f); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+function tracksFromCSV(text){
+  const rows = parseCSV(text.replace(/^﻿/,'')); if(rows.length < 2) return [];
+  const h = rows[0].map(x => x.toLowerCase().trim());
+  const find = (...tests) => { for(const t of tests){ const i = h.findIndex(x => t.test(x)); if(i >= 0) return i; } return -1; };
+  const ti = find(/^track name$/, /^(track|title|song|song name|name)$/, /track name|title|song/);
+  const ai = find(/^artist name\(s\)$/, /^artists?( name)?$/, /artist/);
+  const di = find(/duration/);
+  const li = find(/^album name$/, /^album$/);
+  if(ti < 0) return [];
+  return rows.slice(1).map(r => {
+    const dur = di >= 0 ? +r[di] : 0;
+    return { title:(r[ti]||'').trim(), artist:((ai>=0 ? r[ai] : '')||'').split(/[;,]/)[0].trim(), album: li>=0 ? r[li] : '', durMs: dur > 10000 ? dur : dur > 0 ? dur*1000 : 0 };
+  }).filter(t => t.title);
+}
+function tracksFromText(text){
+  return text.split(/\n/).map(l => l.replace(/^\s*\d+[\.\)]\s*/,'').trim()).filter(Boolean).map(l => {
+    let m;
+    if((m = l.split('\t')).length >= 2) return { title:m[0].trim(), artist:m[1].trim() };
+    if((m = l.match(/^(.+?)\s+[-–—]\s+(.+)$/))) return { artist:m[1].trim(), title:m[2].trim() };
+    if((m = l.match(/^(.+?)\s+by\s+(.+)$/i))) return { title:m[1].trim(), artist:m[2].trim() };
+    return { title:l, artist:'' };
+  }).filter(t => !/^https?:/.test(t.title));
+}
+function addLocal(name, tracks, source){
+  const pl = { id:'l'+uid(), name:name || 'Imported playlist', source, created:Date.now(), tracks: tracks.map(t => {
+    const m = S.match[mkey(t.artist, t.title)];
+    const lt = { title:t.title, artist:t.artist, album:t.album||'', durMs:t.durMs||0, art:t.art||'' };
+    if(m) applyMatch(lt, m);
+    return lt;
+  })};
+  S.local.unshift(pl); saveLocal(); renderSide();
+  S.view = 'lpl'; S.viewArg = pl.id; render();
+  if(S.token) runMatching(pl.id);
+  return pl;
+}
+
+/* ---------- Spotify account (optional, PKCE) ---------- */
+const SP_REDIRECT = () => location.origin + location.pathname;
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function spConnect(){
+  if(!S.spClientId){ toast('Paste your Spotify client ID first'); return; }
+  if(!crypto?.subtle){ toast('Spotify sign-in needs the page on an https address'); return; }
+  const v = b64url(crypto.getRandomValues(new Uint8Array(48)));
+  const ch = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)));
+  try{ sessionStorage.setItem('tt.spv', v); }catch(e){}
+  const u = new URL('https://accounts.spotify.com/authorize');
+  Object.entries({ response_type:'code', client_id:S.spClientId, scope:'playlist-read-private playlist-read-collaborative user-library-read', redirect_uri:SP_REDIRECT(), code_challenge_method:'S256', code_challenge:ch }).forEach(([k,x]) => u.searchParams.set(k,x));
+  location.href = u.toString();
+}
+async function spHandleRedirect(){
+  const p = new URLSearchParams(location.search);
+  if(!p.has('code') && !p.has('error')) return;
+  history.replaceState(null, '', location.pathname);
+  if(p.has('error')){ toast('Spotify sign-in cancelled'); S.view = 'import'; return; }
+  let v = null; try{ v = sessionStorage.getItem('tt.spv'); }catch(e){}
+  if(!v) return;
+  try{
+    const r = await fetch('https://accounts.spotify.com/api/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({ grant_type:'authorization_code', code:p.get('code'), redirect_uri:SP_REDIRECT(), client_id:S.spClientId, code_verifier:v }) });
+    const j = await r.json(); if(!r.ok) throw new Error(j.error_description || 'Spotify sign-in failed');
+    S.sp = { token:j.access_token, exp:Date.now() + (j.expires_in-60)*1000 }; store.set('sp', S.sp);
+    S.view = 'import';
+  }catch(e){ toast(e.message); }
+}
+async function sp(path){
+  if(!S.sp || Date.now() > S.sp.exp){ S.sp = null; store.set('sp', null); throw new Error('Spotify sign-in expired. Connect again.'); }
+  const r = await fetch(path.startsWith('http') ? path : 'https://api.spotify.com/v1/'+path, { headers:{ Authorization:'Bearer '+S.sp.token } });
+  if(r.status === 401){ S.sp = null; store.set('sp', null); throw new Error('Spotify sign-in expired. Connect again.'); }
+  if(r.status === 403) throw new Error('Spotify blocked this. Its API only shares playlists you own or collaborate on, and the developer account needs Premium.');
+  if(!r.ok) throw new Error('Spotify error '+r.status);
+  return r.json();
+}
+async function spListPlaylists(){
+  let out = [], url = 'me/playlists?limit=50';
+  while(url && out.length < 300){ const j = await sp(url); out = out.concat(j.items||[]); url = j.next; }
+  return out.filter(Boolean);
+}
+function spTrack(x){ const t = x?.item || x?.track; if(!t || t.type && t.type !== 'track' || t.is_local) return null;
+  return { title:t.name, artist:t.artists?.[0]?.name || '', album:t.album?.name || '', durMs:t.duration_ms || 0, art:t.album?.images?.[1]?.url || t.album?.images?.[0]?.url || '' }; }
+async function spImport(id, name){
+  toast('Reading from Spotify…');
+  try{
+    let url = id === 'liked' ? 'me/tracks?limit=50' : `playlists/${id}/items?limit=50`, tracks = [];
+    while(url && tracks.length < 2000){
+      let j;
+      try{ j = await sp(url); }catch(e){ if(id !== 'liked' && /error 404/.test(e.message) && url.includes('/items')){ url = url.replace('/items','/tracks'); continue; } throw e; }
+      tracks = tracks.concat((j.items||[]).map(spTrack).filter(Boolean)); url = j.next;
+    }
+    if(!tracks.length) throw new Error('Spotify returned no songs. It only shares songs from playlists you own or collaborate on. Use the CSV option for others.');
+    addLocal(name, tracks, 'Spotify');
+  }catch(e){ toast(e.message); }
+}
+
+/* ======================= SponsorBlock + your own marks ======================= */
+const CAT_NAME = { music_offtopic:'non-music part', intro:'intro', outro:'outro', sponsor:'sponsor', selfpromo:'self-promo', preview:'preview', mine:'part you marked' };
+async function loadSegments(id){
+  const cats = [];
+  if(S.prefs.offtopic) cats.push('music_offtopic');
+  if(S.prefs.intro) cats.push('intro');
+  if(S.prefs.outro) cats.push('outro');
+  if(S.prefs.sponsor) cats.push('sponsor');
+  if(S.prefs.selfpromo) cats.push('selfpromo');
+  if(S.prefs.preview) cats.push('preview');
+  let segs = [];
+  if(cats.length){
+    try{
+      const r = await fetch(`https://sponsor.ajay.app/api/skipSegments?videoID=${encodeURIComponent(id)}&categories=${encodeURIComponent(JSON.stringify(cats))}`);
+      if(r.ok) segs = (await r.json()).filter(s => s.actionType === 'skip').map(s => ({ start:s.segment[0], end:s.segment[1], cat:s.category }));
+    }catch(e){}
+  }
+  (S.mySkips[id]||[]).forEach(s => segs.push({ start:s.start, end:s.end, cat:'mine' }));
+  return segs.sort((a,b) => a.start - b.start);
+}
+
+/* ======================= player ======================= */
+let player = null, ready = false, ticker = null, loadingId = null;
+window.onYouTubeIframeAPIReady = () => {
+  player = new YT.Player('yt', {
+    width:'100%', height:'100%',
+    playerVars:{ playsinline:1, controls:0, rel:0, iv_load_policy:3, fs:0 },
+    events:{
+      onReady:() => { ready = true; player.setVolume(+$('vol').value); },
+      onStateChange:e => {
+        const on = e.data === YT.PlayerState.PLAYING; setPlayIcon(on);
+        if('mediaSession' in navigator) navigator.mediaSession.playbackState = on ? 'playing' : 'paused';
+        if(e.data === YT.PlayerState.ENDED) next(true);
+      },
+      onError:() => { toast('That video can’t be played outside YouTube, skipping'); setTimeout(() => next(true), 600); }
+    }
+  });
+};
+(function(){ const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); })();
+
+async function ensureId(t){
+  if(t.id) return true;
+  const lpl = t.lp && localById(t.lp); const lt = lpl && lpl.tracks[t.li];
+  if(lt && lt.yt === '') return false;
+  const m = await findMatch(t);
+  if(lt){ applyMatch(lt, m); saveLocal(); }
+  t.id = m.id; const c = m.cands.find(x => x.id === m.id); if(c) t.art = c.art;
+  return !!t.id;
+}
+let playSeq = 0;
+async function playAt(i, dir = 1){
+  if(i < 0 || i >= S.queue.length) return;
+  const seq = ++playSeq;
+  S.idx = i; const t = S.queue[i];
+  S.segments = []; S.skipLog = []; S.markStart = null; updateMarkBtn();
+  updateNow();
+  if(!t.id){
+    try{ const ok = await ensureId(t); if(seq !== playSeq) return;
+      if(!ok){ toast('No YouTube match for '+t.title+', skipping'); return dir < 0 ? playAt(i-1, -1) : next(true, true); }
+    }catch(e){ toast(errMsg(e)); return; }
+    updateNow();
+  }
+  loadingId = t.id;
+  if(ready) player.loadVideoById(t.id);
+  countPlay(t);
+  const segs = await loadSegments(t.id);
+  if(loadingId === t.id && seq === playSeq){ S.segments = segs; drawSegs(); updatePill(); }
+  clearInterval(ticker); ticker = setInterval(tick, 250);
+}
+function countPlay(t){
+  S.recent = [strip(t)].concat(S.recent.filter(r => r.id !== t.id)).slice(0, 24); store.set('recent', S.recent);
+  const p = S.plays[t.id] || { n:0, t:strip(t) }; p.n++; p.t = strip(t); p.last = Date.now(); S.plays[t.id] = p; store.set('plays', S.plays);
+}
+const strip = t => ({ id:t.id, title:t.title, artist:t.artist, art:t.art });
+function playList(list, i){ S.queue = list.map(x => ({...x})); if(S.shuffle) shuffleFrom(i); else playAt(i); }
+function shuffleFrom(i){
+  const first = S.queue[i]; const rest = S.queue.filter((_,k) => k !== i);
+  for(let k=rest.length-1;k>0;k--){ const j = Math.floor(Math.random()*(k+1)); [rest[k],rest[j]] = [rest[j],rest[k]]; }
+  S.queue = [first].concat(rest); playAt(0);
+}
+function next(auto, skipSleep){
+  if(auto && !skipSleep && S.sleep === 'end'){ setSleep(''); setPlayIcon(false); toast('Sleep timer: stopped'); return; }
+  if(auto && S.repeat && !skipSleep){ playAt(S.idx); return; }
+  if(S.idx < S.queue.length-1) playAt(S.idx+1);
+  else setPlayIcon(false);
+}
+function prev(){ if(ready && player.getCurrentTime() > 4) player.seekTo(firstStart(), true); else if(S.idx > 0) playAt(S.idx-1, -1); }
+function firstStart(){ const s = S.segments[0]; return s && s.start < 1 ? s.end : 0; }
+function checkSkip(){
+  const c = player.getCurrentTime(), d = player.getDuration();
+  for(const s of S.segments){
+    if(c >= s.start - 0.05 && c < s.end - 0.3){
+      S.skipLog.push(`Skipped ${CAT_NAME[s.cat]||s.cat} (${fmt(s.start)}–${fmt(s.end)})`);
+      if(d && s.end >= d - 1.5){ toast('Skipped the ending, next song'); next(true); }
+      else { player.seekTo(s.end, true); toast('Skipped '+(CAT_NAME[s.cat]||s.cat)); }
+      renderLog(); return;
+    }
+  }
+}
+function tick(){
+  if(!ready) return;
+  if(typeof S.sleep === 'number' && Date.now() >= S.sleep){ player.pauseVideo(); setSleep(''); toast('Sleep timer: stopped'); }
+  checkSkip();
+  const c = player.getCurrentTime()||0, d = player.getDuration()||0;
+  $('tCur').textContent = fmt(c); $('tDur').textContent = fmt(d);
+  $('fill').style.width = d ? (c/d*100)+'%' : '0';
+  if(S.markStart != null) $('markBtn').textContent = `Mark skip end (from ${fmt(S.markStart)})`;
+}
+function drawSegs(tries = 0){
+  $('seek').querySelectorAll('.seg').forEach(n => n.remove());
+  const d = ready ? player.getDuration() : 0;
+  if(!d){ if(tries < 20) setTimeout(() => drawSegs(tries+1), 500); return; }
+  S.segments.forEach(s => { const n = document.createElement('div'); n.className = 'seg' + (s.cat==='mine'?' mine':''); n.style.left = (s.start/d*100)+'%'; n.style.width = Math.max(.6,(s.end-s.start)/d*100)+'%'; n.title = CAT_NAME[s.cat]; $('seek').appendChild(n); });
+}
+function updatePill(){
+  const p = $('skipPill'); const n = S.segments.length;
+  p.hidden = !n; p.textContent = n ? `${n} part${n>1?'s':''} trimmed` : '';
+  renderLog(); updateMarkBtn();
+}
+function setPlayIcon(on){ $('playIc').innerHTML = on ? '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>'; $('playBtn').setAttribute('aria-label', on ? 'Pause' : 'Play'); }
+function togglePlay(){ if(!ready || S.idx < 0) return; player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo(); }
+
+/* your own skip marks */
+function updateMarkBtn(){
+  const t = S.queue[S.idx];
+  $('markBtn').textContent = S.markStart != null ? `Mark skip end (from ${fmt(S.markStart)})` : 'Mark skip start';
+  $('clearMarks').hidden = !(t && t.id && (S.mySkips[t.id]||[]).length);
+}
+$('markBtn').onclick = () => {
+  const t = S.queue[S.idx]; if(!ready || !t?.id) return;
+  const c = player.getCurrentTime();
+  if(S.markStart == null){ S.markStart = c; toast('Now play to where the song resumes and tap again'); }
+  else{
+    const a = Math.min(S.markStart, c), b = Math.max(S.markStart, c);
+    if(b - a < 1){ toast('That part is too short to skip'); }
+    else { (S.mySkips[t.id] = S.mySkips[t.id] || []).push({ start:a, end:b }); store.set('mySkips', S.mySkips); S.segments.push({ start:a, end:b, cat:'mine' }); S.segments.sort((x,y) => x.start-y.start); drawSegs(); toast(`Saved. ${fmt(a)}–${fmt(b)} will be skipped from now on`); }
+    S.markStart = null;
+  }
+  updateMarkBtn(); updatePill();
+};
+$('clearMarks').onclick = () => { const t = S.queue[S.idx]; if(!t?.id) return; delete S.mySkips[t.id]; store.set('mySkips', S.mySkips); S.segments = S.segments.filter(s => s.cat !== 'mine'); drawSegs(); updatePill(); toast('Your marks for this song are cleared'); };
+
+/* sleep timer */
+function setSleep(v){ S.sleep = v === '' ? null : v === 'end' ? 'end' : Date.now() + (+v)*60000; $('sleep').value = v === '' ? '' : v; }
+$('sleep').onchange = e => { setSleep(e.target.value); if(e.target.value) toast(e.target.value === 'end' ? 'Stops after this song' : `Stops in ${e.target.value} minutes`); };
+
+/* ======================= now playing ======================= */
+function updateNow(){
+  const t = S.queue[S.idx]; if(!t) return;
+  $('npArt').src = t.art || ''; $('npTitle').textContent = t.title; $('npArtist').textContent = t.artist;
+  $('shTitle').textContent = t.title; $('shArtist').textContent = t.artist;
+  document.title = t.title + ' · Tunetube';
+  renderQueue(); renderLog();
+  document.querySelectorAll('.track').forEach(r => r.classList.toggle('on', !!t.id && r.dataset.id === t.id));
+  if('mediaSession' in navigator){
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({ title:t.title, artist:t.artist, artwork: t.art ? [{ src:t.art, sizes:'480x360' }] : [] });
+      navigator.mediaSession.setActionHandler('play', () => ready && player.playVideo());
+      navigator.mediaSession.setActionHandler('pause', () => ready && player.pauseVideo());
+      navigator.mediaSession.setActionHandler('nexttrack', () => next());
+      navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+    }catch(e){}
+  }
+}
+function renderLog(){
+  const lines = []; const t = S.queue[S.idx];
+  const comm = S.segments.filter(s => s.cat !== 'mine').length, mine = S.segments.length - comm;
+  if(comm) lines.push(`<span><b>${comm} non-song part${comm>1?'s':''}</b> marked by the community for this video</span>`);
+  if(mine) lines.push(`<span><b>${mine} part${mine>1?'s':''}</b> you marked</span>`);
+  if(!S.segments.length && t?.id) lines.push('<span>No extra parts reported for this video. If it has some, mark them below the video.</span>');
+  S.skipLog.forEach(l => lines.push('<span>'+esc(l)+'</span>'));
+  $('shLog').innerHTML = lines.join('');
+}
+function renderQueue(){
+  const up = S.queue.slice(S.idx+1, S.idx+21);
+  $('shQueue').innerHTML = up.length ? up.map((t,k) => trackRow(t, S.idx+1+k, 'queue')).join('') : '<div class="empty">End of queue.</div>';
+}
+function openSheet(){ $('sheet').hidden = false; moveFrame(true); }
+function closeSheet(){ $('sheet').hidden = true; moveFrame(false); }
+/* Moving an iframe in the DOM reloads it, so the player stays put and is laid over the stage instead. */
+function moveFrame(toStage){
+  const p = $('parking');
+  if(!toStage){ p.removeAttribute('style'); return; }
+  const r = $('stage').getBoundingClientRect();
+  Object.assign(p.style, { left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px', right:'auto', bottom:'auto', opacity:1, pointerEvents:'auto', zIndex:6, borderRadius:'14px', overflow:'hidden' });
+}
+window.addEventListener('resize', () => { if(!$('sheet').hidden) moveFrame(true); });
+$('sheet').addEventListener('scroll', () => moveFrame(true));
+
+/* ======================= views ======================= */
+const ICON_Q = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h12M3 12h12M3 18h7M18 13v8M14 17h8"/></svg>';
+const ICON_FIX = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+function trackRow(t, i, src){
+  const tag = t.lp ? (t.state === 'none' ? '<span class="tag bad">no match</span>' : !t.id ? '<span class="tag">not matched yet</span>' : '') : '';
+  const on = S.queue[S.idx] && t.id && S.queue[S.idx].id === t.id;
+  return `<div class="track${on?' on':''}" data-id="${esc(t.id||'')}" data-i="${i}" data-src="${src}" role="button" tabindex="0">
+    <span class="n">${i+1}</span>${t.art ? `<img loading="lazy" src="${esc(t.art)}" alt="">` : '<div class="noart"></div>'}
+    <div style="min-width:0"><div class="t">${esc(t.title)}</div><div class="a">${esc(t.artist)}${tag}</div></div>
+    <div class="acts"><button data-q="${i}" aria-label="Play next" title="Play next">${ICON_Q}</button>${src==='lpl' ? `<button data-fix="${i}" aria-label="Change match" title="Change YouTube match">${ICON_FIX}</button>` : ''}</div>
+  </div>`;
+}
+let shown = [];
+function trackList(list, src){ if(src === 'search') shown = list; return `<div class="tracks">${list.map((t,i) => trackRow(t,i,src)).join('')}</div>`; }
+function localQueue(pl){ return pl.tracks.map((x,i) => ({ id:x.yt||'', title:x.title, artist:x.artist, art:x.ytArt||x.art, durMs:x.durMs, lp:pl.id, li:i, state: x.yt === '' ? 'none' : '' })); }
+function signInBlock(){
+  if(!S.clientId) return `<div class="empty">Add your Google client ID in <button class="btn ghost small" data-view="settings">Settings</button> to connect your YouTube account.</div>`;
+  return `<div class="row"><button class="btn" data-signin>Sign in with YouTube</button><span class="sub" style="margin:0">Read-only access to your playlists and likes.</span></div>`;
+}
+function topSongs(){ return Object.values(S.plays).filter(p => p.n >= 2).sort((a,b) => b.n - a.n).slice(0,10).map(p => p.t); }
+function sourceList(src){
+  if(src === 'liked') return S.liked;
+  if(src === 'pl') return S.plCache || [];
+  if(src === 'recent') return S.recent.slice(0,8);
+  if(src === 'top') return topSongs();
+  if(src === 'queue') return S.queue;
+  if(src === 'lpl'){ const pl = localById(S.viewArg); return pl ? localQueue(pl) : []; }
+  return shown;
+}
+function plGrid(){
+  const yt = S.playlists.map(p => { const th = p.snippet.thumbnails||{}; const u = (th.high||th.medium||th.default||{}).url||'';
+    return `<button class="card" data-pl="${esc(p.id)}"><img loading="lazy" src="${esc(u)}" alt=""><b>${esc(dec(p.snippet.title))}</b><span>${p.contentDetails.itemCount} videos</span></button>`; });
+  return `<div class="grid">${localGrid()}${yt.join('')}</div>`;
+}
+function localGrid(){
+  return S.local.map(p => { const art = p.tracks.find(t => t.ytArt || t.art); const c = counts(p);
+    return `<button class="card" data-lpl="${p.id}">${art ? `<img loading="lazy" src="${esc(art.art||art.ytArt)}" alt="">` : `<div class="ph">${esc(p.name[0]||'♪')}</div>`}<b>${esc(p.name)}</b><span>${p.source} · ${c.all} songs</span></button>`; }).join('');
+}
+
+async function render(){
+  document.querySelectorAll('.nav').forEach(n => n.setAttribute('aria-current', n.dataset.view === S.view || (S.view==='lpl' && n.dataset.view==='library') || (S.view==='playlist' && n.dataset.view==='library')));
+  const m = $('main'); const signed = !!S.token;
+  if(S.view === 'home'){
+    const h = new Date().getHours(); const greet = h<5 ? 'Late night listening' : h<12 ? 'Good morning' : h<18 ? 'Good afternoon' : 'Good evening';
+    const top = topSongs();
+    m.innerHTML = `<h1>${greet}</h1><p class="sub">Your YouTube music, without the skits, intros and talking bits.</p>
+      ${signed ? '' : signInBlock()}
+      ${!S.local.length ? `<h2>Coming from Spotify?</h2><div class="empty" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">Bring your Spotify playlists over and Tunetube finds each song on YouTube. <button class="btn small" data-view="import">Import playlists</button></div>` : ''}
+      ${S.recent.length ? `<h2>Recently played</h2>${trackList(S.recent.slice(0,8),'recent')}` : ''}
+      ${top.length >= 3 ? `<h2>Your most played</h2>${trackList(top,'top')}` : ''}
+      ${S.local.length || (signed && S.playlists.length) ? `<h2>Your playlists</h2>${plGrid()}` : ''}
+      ${signed && S.liked.length ? `<h2>Liked songs</h2><div class="row" style="margin-bottom:10px"><button class="btn small" data-playall="liked">Play</button><button class="btn ghost small" data-shuffleall="liked">Shuffle</button></div>${S.recent.length ? '' : trackList(S.liked.slice(0,10),'liked')}` : ''}`;
+  }
+  else if(S.view === 'search'){
+    m.innerHTML = `<h1>Search</h1><p class="sub">Searches YouTube’s Music category only.</p>
+      <form class="search" id="sform"><input id="q" type="search" placeholder="Artists, songs, albums" value="${esc(S.viewArg||'')}" autocomplete="off"><button class="btn">Search</button></form>
+      <div id="sres">${signed ? (shown.length && S.viewArg ? '<h2>Songs</h2>'+trackList(shown,'search') : '') : '<p></p>'+signInBlock()}</div>`;
+    $('sform').onsubmit = async e => {
+      e.preventDefault(); const q = $('q').value.trim(); if(!q) return; S.viewArg = q;
+      $('sres').innerHTML = '<p class="sub">Searching…</p>';
+      try{ const r = await searchMusic(q); $('sres').innerHTML = '<h2>Songs</h2>'+trackList(r,'search'); }
+      catch(err){ $('sres').innerHTML = err.message === 'signin' ? signInBlock() : `<div class="empty">${esc(errMsg(err))}</div>`; }
+    };
+    if(!S.viewArg) $('q').focus();
+  }
+  else if(S.view === 'library'){
+    m.innerHTML = `<h1>Your library</h1>${signed ? '' : signInBlock()}
+      ${signed ? `<h2>Liked songs</h2>${S.liked.length ? `<div class="row" style="margin-bottom:10px"><button class="btn small" data-playall="liked">Play</button><button class="btn ghost small" data-shuffleall="liked">Shuffle</button></div>${trackList(S.liked,'liked')}` : '<div class="empty">No liked music videos yet. Like songs on YouTube and they show up here.</div>'}` : ''}
+      <h2>Playlists</h2>${S.local.length || S.playlists.length ? plGrid() : `<div class="empty">No playlists yet. <button class="btn ghost small" data-view="import">Import from Spotify</button></div>`}`;
+  }
+  else if(S.view === 'playlist'){
+    const pl = S.playlists.find(p => p.id === S.viewArg); const name = esc(dec(pl?.snippet.title||'Playlist'));
+    m.innerHTML = `<h1>${name}</h1><p class="sub">Loading songs…</p>`;
+    try{
+      const list = await loadPlaylist(S.viewArg); S.plCache = list;
+      m.innerHTML = `<h1>${name}</h1><p class="sub">${list.length} songs on YouTube</p>
+        <div class="row" style="margin-bottom:14px"><button class="btn" data-playall="pl">Play</button><button class="btn ghost" data-shuffleall="pl">Shuffle</button></div>${trackList(list,'pl')}`;
+    }catch(e){ m.innerHTML = `<h1>${name}</h1>${e.message==='signin' ? signInBlock() : `<div class="empty">${esc(errMsg(e))}</div>`}`; }
+  }
+  else if(S.view === 'lpl'){
+    const pl = localById(S.viewArg); if(!pl){ S.view = 'library'; return render(); }
+    m.innerHTML = `<h1>${esc(pl.name)}</h1><p class="sub">Imported from ${esc(pl.source)}${pl.ytId ? ' · saved to your YouTube as a private playlist' : ''}</p>
+      ${signed ? '' : signInBlock()}
+      <div class="box" id="jobUI" style="margin-bottom:18px"></div>
+      <div class="row" style="margin-bottom:14px"><button class="btn" data-playall="lpl">Play</button><button class="btn ghost" data-shuffleall="lpl">Shuffle</button></div>
+      ${trackList(localQueue(pl),'lpl')}`;
+    updateJobUI();
+  }
+  else if(S.view === 'import') renderImport(m);
+  else if(S.view === 'settings') renderSettings(m);
+  m.scrollTop = 0;
+}
+
+function renderImport(m){
+  const spOn = S.sp && Date.now() < S.sp.exp;
+  m.innerHTML = `<h1>Import from Spotify</h1>
+    <p class="sub">Tunetube looks up each song on YouTube and picks the best version: the artist’s audio upload when one exists, at the right length, skipping covers, live takes and sped-up edits unless the original is one. You can change any match afterwards.</p>
+    ${S.token ? '' : `<div style="margin-bottom:10px">${signInBlock()}</div>`}
+
+    <h2>From a CSV file</h2>
+    <div class="box">
+      <p>Works with any Spotify playlist, including ones you follow but don’t own.</p>
+      <ol>
+        <li>Open <a href="https://exportify.net" target="_blank" rel="noopener">exportify.net</a> and log in with Spotify.</li>
+        <li>Tap <b>Export</b> next to a playlist, or <b>Export All</b> for a zip of CSV files.</li>
+        <li>Choose the CSV files here. You can pick several at once.</li>
+      </ol>
+      <div class="row"><label class="btn" for="csvIn">Choose CSV files</label><input id="csvIn" type="file" accept=".csv,text/csv" multiple hidden></div>
+    </div>
+
+    <h2>Paste a list</h2>
+    <div class="box">
+      <p>One song per line, as <code>Artist - Song</code> or <code>Song by Artist</code>.</p>
+      <input class="field" id="pasteName" placeholder="Playlist name">
+      <textarea class="field" id="pasteText" placeholder="Frank Ocean - Pink + White&#10;Bad Habit by Steve Lacy&#10;SZA - Snooze"></textarea>
+      <div class="row"><button class="btn" id="pasteGo">Import list</button></div>
+    </div>
+
+    <h2>From your Spotify account</h2>
+    <div class="box" id="spBox">
+      ${spOn ? `<p>Connected to Spotify. Pick a playlist to import.</p><div id="spLists"><p>Loading your playlists…</p></div><div class="row"><button class="btn ghost small" id="spOut">Disconnect Spotify</button></div>` : `
+      <p>Optional. Since February 2026 Spotify only lets personal apps read playlists you own or collaborate on, and the developer account must have Spotify Premium. Without Premium, use the CSV option.</p>
+      <ol>
+        <li>Open <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a> and create an app.</li>
+        <li>Set the Redirect URI to exactly <code>${esc(SP_REDIRECT())}</code> and tick <b>Web API</b>.</li>
+        <li>Copy the app’s Client ID here.</li>
+      </ol>
+      <input class="field" id="spCid" placeholder="Spotify client ID" value="${esc(S.spClientId)}">
+      <div class="row"><button class="btn" id="spGo">Connect Spotify</button></div>`}
+    </div>`;
+  $('csvIn').onchange = async e => {
+    const files = [...e.target.files]; let made = 0;
+    for(const f of files){
+      const tr = tracksFromCSV(await f.text());
+      if(!tr.length){ toast(`${f.name} has no song or artist columns I recognize`); continue; }
+      const name = f.name.replace(/\.csv$/i,'').replace(/_/g,' ');
+      if(files.length === 1){ addLocal(name, tr, 'Spotify'); return; }
+      const pl = { id:'l'+uid(), name, source:'Spotify', created:Date.now(), tracks: tr.map(t => { const lt = { title:t.title, artist:t.artist, album:t.album, durMs:t.durMs, art:'' }; const mm = S.match[mkey(t.artist,t.title)]; if(mm) applyMatch(lt, mm); return lt; }) };
+      S.local.unshift(pl); made++;
+    }
+    if(made){ saveLocal(); renderSide(); toast(`Imported ${made} playlists. Open one to match its songs.`); S.view = 'library'; render(); }
+  };
+  $('pasteGo').onclick = () => {
+    const tr = tracksFromText($('pasteText').value);
+    if(!tr.length){ toast('Paste at least one song first'); return; }
+    addLocal($('pasteName').value.trim() || 'Pasted playlist', tr, 'a pasted list');
+  };
+  if(spOn){
+    $('spOut').onclick = () => { S.sp = null; store.set('sp', null); render(); };
+    (async () => {
+      try{
+        const lists = await spListPlaylists();
+        const el = $('spLists'); if(!el) return;
+        el.innerHTML = `<div class="tracks">
+          <div class="track" data-spimp="liked" data-name="Liked Songs from Spotify" role="button" tabindex="0"><span class="n">♥</span><div class="noart"></div><div style="min-width:0"><div class="t">Liked Songs</div><div class="a">Your saved tracks</div></div><span class="btn ghost small">Import</span></div>
+          ${lists.map(p => `<div class="track" data-spimp="${esc(p.id)}" data-name="${esc(p.name)}" role="button" tabindex="0"><span class="n">♪</span>${p.images?.[0]?.url ? `<img loading="lazy" src="${esc(p.images[0].url)}" alt="">` : '<div class="noart"></div>'}<div style="min-width:0"><div class="t">${esc(p.name)}</div><div class="a">${esc(p.owner?.display_name||'')}</div></div><span class="btn ghost small">Import</span></div>`).join('')}
+        </div>`;
+      }catch(e){ const el = $('spLists'); if(el) el.innerHTML = `<p>${esc(e.message)}</p>`; }
+    })();
+  } else {
+    $('spGo').onclick = () => { S.spClientId = $('spCid').value.trim(); store.set('spClientId', S.spClientId); spConnect(); };
+  }
+}
+
+function renderSettings(m){
+  const origin = location.origin && location.origin !== 'null' ? location.origin : '(open this page from a web address, not a file)';
+  const tg = (k, t, d) => `<label class="toggle"><span>${t}<small>${d}</small></span><input type="checkbox" id="p_${k}" data-pref="${k}" ${S.prefs[k]?'checked':''}></label>`;
+  const nm = Object.keys(S.match).length, nk = Object.keys(S.mySkips).length;
+  m.innerHTML = `<h1>Settings</h1>
+    <h2>Skip the extra parts</h2>
+    <div style="max-width:680px">
+      ${tg('offtopic','Non-music sections','Skits, dialogue and story scenes in music videos. This is the main one.')}
+      ${tg('intro','Intros','Title cards and long openings before the song starts.')}
+      ${tg('outro','Outros and end cards','Credits, "subscribe" screens and teasers after the song.')}
+      ${tg('sponsor','Sponsor reads','Paid promotions inside the video.')}
+      ${tg('selfpromo','Self-promotion','Merch plugs and channel shout-outs.')}
+      ${tg('preview','Previews and recaps','Clips of other videos or what’s coming up.')}
+    </div>
+    <h2>Matching and display</h2>
+    <div style="max-width:680px">
+      ${tg('preferAudio','Prefer audio versions','When importing, pick the artist’s plain audio upload over the music video. These have no skits at all.')}
+      ${tg('musicOnly','Music only in Liked songs','Hide liked videos that aren’t in YouTube’s Music category.')}
+      ${tg('cleanTitles','Clean up titles','Drop tags like "(Official Music Video)" and split artist from song.')}
+    </div>
+    <h2>Connect your YouTube account</h2>
+    <div class="box">
+      <ol>
+        <li>In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>, create a project and enable <b>YouTube Data API v3</b>.</li>
+        <li>In Google Auth Platform, set up the consent screen as External and add your Gmail as a test user.</li>
+        <li>Create a <b>Web application</b> client with this authorized JavaScript origin: <code>${esc(origin)}</code></li>
+        <li>Paste the client ID below.</li>
+      </ol>
+      <label for="cid" class="label" style="padding:0">Client ID</label>
+      <input class="field" id="cid" placeholder="1234567890-abc.apps.googleusercontent.com" value="${esc(S.clientId)}">
+      <div class="row"><button class="btn" id="saveCid">Save and sign in</button>${S.token ? '<button class="btn ghost" id="signout">Sign out</button>' : ''}</div>
+      <p>Saving imported playlists to YouTube asks for one extra permission the first time, so Tunetube can create playlists on your account. It never deletes anything.</p>
+    </div>
+    <h2>Backup</h2>
+    <div class="box">
+      <p>Everything Tunetube remembers lives in this browser: ${S.local.length} imported playlists, ${nm} song matches, your skip marks on ${nk} songs, and your play history. Back it up to move it to another phone or computer.</p>
+      <div class="row"><button class="btn" id="bkDown">Download backup</button><button class="btn ghost" id="bkUp">Restore from backup</button></div>
+    </div>
+    <p class="sub" style="margin-top:20px">Skip data comes from SponsorBlock, a community database. Popular videos are usually marked; new or obscure ones may not be. Keyboard: Space plays or pauses, ← → seek 10 seconds, Shift + ← → change song.</p>`;
+  m.querySelectorAll('[data-pref]').forEach(c => c.onchange = () => { S.prefs[c.dataset.pref] = c.checked; store.set('prefs', S.prefs); if(c.dataset.pref === 'musicOnly' && S.token) loadLibrary(); });
+  $('saveCid').onclick = () => { S.clientId = $('cid').value.trim(); store.set('clientId', S.clientId); tokenClient = writeClient = null; signIn(); };
+  if($('signout')) $('signout').onclick = () => { try{ google.accounts.oauth2.revoke(S.token); }catch(e){} S.token = S.wtoken = null; S.playlists = []; S.liked = []; renderSide(); render(); };
+  $('bkDown').onclick = () => {
+    const data = { app:'tunetube', v:1, saved:new Date().toISOString() }; BACKUP_KEYS.forEach(k => data[k] = store.get(k, null));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type:'application/json' }));
+    a.download = `tunetube-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  };
+  $('bkUp').onclick = () => $('restoreFile').click();
+}
+$('restoreFile').onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const d = JSON.parse(await f.text()); if(d.app !== 'tunetube') throw 0;
+    BACKUP_KEYS.forEach(k => { if(d[k] != null) store.set(k, d[k]); });
+    S.clientId = store.get('clientId',''); S.spClientId = store.get('spClientId','');
+    S.prefs = Object.assign(S.prefs, store.get('prefs',{})); S.recent = store.get('recent',[]); S.local = store.get('local',[]);
+    S.match = store.get('match',{}); S.mySkips = store.get('mySkips',{}); S.plays = store.get('plays',{});
+    tokenClient = writeClient = null; renderSide(); render(); toast('Backup restored');
+  }catch(err){ toast('That file isn’t a Tunetube backup'); }
+  e.target.value = '';
+};
+
+function renderSide(){
+  const loc = S.local.map(p => `<button data-lpl="${p.id}">${esc(p.name)}</button>`).join('');
+  const yt = S.playlists.map(p => `<button data-pl="${esc(p.id)}">${esc(dec(p.snippet.title))}</button>`).join('');
+  $('sidePl').innerHTML = (loc ? '<div class="label">Imported</div>'+loc : '') + (yt ? '<div class="label">On YouTube</div>'+yt : '');
+}
+
+/* ---------- change-match picker ---------- */
+async function openPicker(i){
+  const pl = localById(S.viewArg); const lt = pl?.tracks[i]; if(!lt) return;
+  const k = mkey(lt.artist, lt.title);
+  $('scrim').hidden = false;
+  $('picker').innerHTML = `<h3>${esc(lt.title)}</h3><p class="sub" style="margin:0">${esc(lt.artist)}</p><p class="sub" style="margin:0">Finding versions on YouTube…</p>`;
+  let m = S.match[k];
+  if(!m){ try{ m = await findMatch(lt); applyMatch(lt, m); saveLocal(); }catch(e){ $('picker').innerHTML += `<p class="sub">${esc(errMsg(e))}</p><button class="btn ghost" data-closepick>Close</button>`; return; } }
+  $('picker').innerHTML = `<h3>${esc(lt.title)}</h3><p class="sub" style="margin:0">${esc(lt.artist)}${lt.durMs ? ' · '+fmt(lt.durMs/1000) : ''}</p>
+    <div class="label" style="padding:6px 0 0">Pick the right version</div>
+    ${m.cands.length ? m.cands.map(c => `<button class="cand${c.id===lt.yt?' on':''}" data-pick="${esc(c.id)}" data-pi="${i}"><img src="${esc(c.art)}" alt=""><div style="min-width:0"><b>${esc(c.title)}</b><span>${esc(c.channel)}</span></div><span>${c.dur ? fmt(c.dur) : ''}</span></button>`).join('') : '<p class="sub">YouTube found nothing for this song.</p>'}
+    <div class="row" style="margin-top:6px"><button class="btn ghost small" data-rmtrack="${i}">Remove from playlist</button><button class="btn ghost small" data-closepick>Close</button></div>`;
+}
+function closePicker(){ $('scrim').hidden = true; }
+
+/* ======================= events ======================= */
+document.addEventListener('click', e => {
+  const g = sel => e.target.closest(sel);
+  let el;
+  if((el = g('[data-view]'))){ S.view = el.dataset.view; S.viewArg = null; closeSheet(); closePicker(); render(); return; }
+  if(g('[data-signin]')){ signIn(); return; }
+  if((el = g('[data-pl]'))){ S.view = 'playlist'; S.viewArg = el.dataset.pl; closeSheet(); render(); return; }
+  if((el = g('[data-lpl]'))){ S.view = 'lpl'; S.viewArg = el.dataset.lpl; closeSheet(); render(); return; }
+  if((el = g('[data-match]'))){ runMatching(el.dataset.match); return; }
+  if(g('[data-stopjob]')){ if(S.job) S.job.stop = true; return; }
+  if((el = g('[data-saveyt]'))){ saveToYouTube(el.dataset.saveyt); return; }
+  if((el = g('[data-delpl]'))){
+    if(el.dataset.sure){ S.local = S.local.filter(p => p.id !== el.dataset.delpl); saveLocal(); renderSide(); S.view = 'library'; render(); toast('Playlist deleted from Tunetube'); }
+    else { el.dataset.sure = '1'; el.textContent = 'Tap again to delete'; setTimeout(() => { if(el.isConnected){ delete el.dataset.sure; el.textContent = 'Delete'; } }, 3000); }
+    return;
+  }
+  if((el = g('[data-spimp]'))){ spImport(el.dataset.spimp, el.dataset.name); return; }
+  if((el = g('[data-playall]'))){ const l = sourceList(el.dataset.playall); if(l.length){ S.shuffle = false; $('shuf').classList.remove('on'); playList(l, 0); } return; }
+  if((el = g('[data-shuffleall]'))){ const l = sourceList(el.dataset.shuffleall); if(l.length){ S.shuffle = true; $('shuf').classList.add('on'); playList(l, Math.floor(Math.random()*l.length)); } return; }
+  if(g('[data-closepick]') || e.target === $('scrim')){ closePicker(); return; }
+  if((el = g('[data-pick]'))){
+    const pl = localById(S.viewArg); const lt = pl.tracks[+el.dataset.pi]; const k = mkey(lt.artist, lt.title);
+    S.match[k] = { ...S.match[k], id:el.dataset.pick }; store.set('match', S.match);
+    applyMatch(lt, S.match[k]); saveLocal(); closePicker(); render(); toast('Match updated'); return;
+  }
+  if((el = g('[data-rmtrack]'))){ const pl = localById(S.viewArg); pl.tracks.splice(+el.dataset.rmtrack, 1); saveLocal(); closePicker(); render(); return; }
+  if((el = g('[data-fix]'))){ openPicker(+el.dataset.fix); return; }
+  if((el = g('[data-q]'))){
+    const row = el.closest('.track'); const t = sourceList(row.dataset.src)[+row.dataset.i];
+    if(t){ if(S.idx < 0){ S.queue = [{...t}]; playAt(0); } else { S.queue.splice(S.idx+1, 0, {...t}); renderQueue(); toast('Plays next: '+t.title); } }
+    return;
+  }
+  if((el = g('.track[data-src]'))){ const src = el.dataset.src, i = +el.dataset.i; if(src === 'queue') playAt(i); else playList(sourceList(src), i); }
+});
+document.addEventListener('keydown', e => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+  if(e.key === 'Enter' && e.target.matches?.('.track[role=button]')){ e.target.click(); return; }
+  if(e.key === 'Escape'){ closePicker(); closeSheet(); return; }
+  if(typing) return;
+  if(e.key === ' ' && !e.target.closest('button')){ e.preventDefault(); togglePlay(); }
+  if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+    if(e.shiftKey) e.key === 'ArrowRight' ? next() : prev();
+    else if(ready && S.idx >= 0) player.seekTo(Math.max(0, player.getCurrentTime() + (e.key === 'ArrowRight' ? 10 : -10)), true);
+  }
+});
+$('playBtn').onclick = togglePlay;
+$('next').onclick = () => next();
+$('prev').onclick = prev;
+$('shuf').onclick = () => { S.shuffle = !S.shuffle; $('shuf').classList.toggle('on', S.shuffle);
+  if(S.shuffle && S.idx >= 0){ const rest = S.queue.slice(S.idx+1); for(let k=rest.length-1;k>0;k--){ const j = Math.floor(Math.random()*(k+1)); [rest[k],rest[j]] = [rest[j],rest[k]]; } S.queue = S.queue.slice(0, S.idx+1).concat(rest); renderQueue(); } };
+$('rep').onclick = () => { S.repeat = !S.repeat; $('rep').classList.toggle('on', S.repeat); };
+$('vol').oninput = e => ready && player.setVolume(+e.target.value);
+$('seek').onclick = e => { if(!ready || S.idx < 0) return; const r = $('seek').getBoundingClientRect(); player.seekTo((e.clientX-r.left)/r.width*player.getDuration(), true); };
+$('npBtn').onclick = () => { if(S.idx >= 0) openSheet(); };
+$('closeSheet').onclick = closeSheet;
+let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, msg.length > 60 ? 5000 : 2400); }
+
+window.addEventListener('load', () => { initAuth(); });
+spHandleRedirect().then(render);
+</script>
+</body>
+</html>
